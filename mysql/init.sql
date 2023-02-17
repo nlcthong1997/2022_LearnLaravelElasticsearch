@@ -1,0 +1,1 @@
+create database elasticsearch_demo;

@@ -1,0 +1,10 @@
+[mysqld]
+
+;using docker image: gkmr/mysql-mecab:5.7
+loose-mecab-rc-file=/etc/mecabrc
+
+;using with option MyISAM
+;ft_min_word_len=1
+
+;using with option INNODB
+innodb_ft_min_token_size=1

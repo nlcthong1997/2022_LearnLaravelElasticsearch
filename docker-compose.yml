@@ -1,0 +1,74 @@
+version: "3.7"
+
+services:
+  main:
+    build: ./main
+    container_name: elasticsearch-demo
+    depends_on:
+      - db
+    volumes:
+      - ./src:/var/www/html
+    networks:
+      elasticsearch:
+
+
+  db:
+    container_name: elasticsearch-mysql
+    image: mysql:5.7.38
+    restart: always
+    ports:
+      - 3307:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+    volumes:
+      - mysql:/var/lib/mysql
+      - ./mysql/init.sql:/docker-entrypoint-initdb.d/setup.sql
+      - ./mysql/docker.cnf:/etc/mysql/conf.d/docker.cnf
+    networks:
+      elasticsearch:
+    
+
+  nginx-service:
+    container_name: elasticsearch-nginx
+    depends_on:
+      - db
+      - main
+    image: nginx:latest
+    restart: unless-stopped
+    ports:
+      - 8880:80
+    volumes:
+      - ./nginx/conf.d/:/etc/nginx/conf.d/
+      - ./nginx/logs/:/var/log/nginx/
+      - ./src:/var/www/html
+    networks:
+      elasticsearch:
+      
+      
+  elasticsearch:
+    container_name: elasticsearch-service
+    image: elasticsearch:7.17.9
+    environment:
+      - xpack.security.enabled=false
+      - "discovery.type=single-node"
+    ports:
+      - 9200:9200
+    networks:
+      elasticsearch:
+      
+  kibana:
+    container_name: elasticsearch-kibana
+    image: kibana:7.17.9
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch-service:9200
+    networks:
+      - elasticsearch
+    depends_on:
+      - elasticsearch
+    ports:
+      - 5601:5601
+    
+volumes:
+  mysql:
+networks:
+  elasticsearch:
